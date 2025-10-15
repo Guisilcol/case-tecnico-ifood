@@ -128,8 +128,10 @@ class App:
         dbutils = w.dbutils
         self.s3_client = boto3.client(
             "s3",
-            aws_access_key_id=dbutils.secrets.get("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=dbutils.secrets.get("AWS_SECRET_ACCESS_KEY"),
+            aws_access_key_id=dbutils.secrets.get("secrets_scope", "AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=dbutils.secrets.get(
+                "secrets_scope", "AWS_SECRET_ACCESS_KEY"
+            ),
         )
 
         # Tipos de dados disponíveis
