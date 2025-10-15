@@ -121,7 +121,13 @@ class App:
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix
         self.base_url = base_url
-        self.s3_client = boto3.client("s3")
+
+        from databricks.sdk import WorkspaceClient
+
+        w = WorkspaceClient()
+        dbutils = w.dbutils
+        credential = dbutils.credentials.assumeRole()
+        self.s3_client = boto3.client("s3", botocore_session=credential)
 
         # Tipos de dados disponíveis
         self.data_types = {
