@@ -61,13 +61,13 @@ class Arguments:
         )
 
         parser.add_argument(
-            "start_month",
+            "start-month",
             nargs="?",
             help="Ano-mês de início (formato YYYY-MM). Se não informado, faz carga full",
         )
 
         parser.add_argument(
-            "end_month",
+            "end-month",
             nargs="?",
             help="Ano-mês de fim (formato YYYY-MM). Se não informado, usa apenas start_month",
         )
