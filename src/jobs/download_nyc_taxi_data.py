@@ -126,10 +126,11 @@ class App:
 
         w = WorkspaceClient()
         dbutils = w.dbutils
-        credential = dbutils.credentials.assumeRole(
-            "arn:aws:iam::241963575180:role/databricks-job-s3-access-role"
+        self.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=dbutils.secrets.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=dbutils.secrets.get("AWS_SECRET_ACCESS_KEY"),
         )
-        self.s3_client = boto3.client("s3", botocore_session=credential)
 
         # Tipos de dados disponíveis
         self.data_types = {
