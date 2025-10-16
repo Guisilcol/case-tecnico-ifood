@@ -33,7 +33,7 @@ class Pipeline:
             "s3://bucket-landing-zone-241963575180/nyc_taxi_data_yellow/"
         )
 
-        df = df.withColumn(df, "data_hora_ingestao", F.current_timestamp())
+        df = df.withColumn("data_hora_ingestao", F.current_timestamp())
 
         df.write.insertInto("bronze_db.nyc_taxi_data_yellow", overwrite=True)
 
