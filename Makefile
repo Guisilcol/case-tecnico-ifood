@@ -4,14 +4,12 @@ SHELL := /bin/bash
 
 help:
 	@echo "Available targets:"
-	@echo "  terraform-plan    - Run terraform plan to preview infrastructure changes"
+	@echo "  plan              - Run terraform plan to preview infrastructure changes"
 	@echo "  deploy            - Apply terraform configuration to create/update infrastructure"
-	@echo "  upload-source     - Upload src folder to S3 source code bucket"
 	@echo "  test              - Run pytest tests"
-	@echo "  install           - Install Python dependencies"
-	@echo "  clean             - Clean temporary files and caches"
+	@echo "  install           - Install Python dependencies from requirements.txt"
 
-terraform-plan:
+plan:
 	@echo "Running terraform plan..."
 	set -a && source .env && set +a && cd infra && terraform init && terraform plan
 
