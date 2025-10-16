@@ -1,20 +1,42 @@
-.PHONY: help terraform-plan terraform-apply test install clean
+SHELL := /bin/bash
+
+.PHONY: help terraform-plan build deploy upload-source test install clean
 
 help:
 	@echo "Available targets:"
 	@echo "  terraform-plan    - Run terraform plan to preview infrastructure changes"
-	@echo "  terraform-apply   - Apply terraform configuration to create/update infrastructure"
+	@echo "  deploy            - Apply terraform configuration to create/update infrastructure"
+	@echo "  upload-source     - Upload src folder to S3 source code bucket"
 	@echo "  test              - Run pytest tests"
 	@echo "  install           - Install Python dependencies"
 	@echo "  clean             - Clean temporary files and caches"
 
 terraform-plan:
 	@echo "Running terraform plan..."
-	cd infra && terraform init && terraform plan
+	set -a && source .env && set +a && cd infra && terraform init && terraform plan
 
-terraform-apply:
+build:
+	@echo "Building project..."
+	bash build_shared_wheel.sh
+
+upload-source:
+	@echo "Uploading source code to S3 bucket..."
+	@set -a && source .env && set +a && \
+	if [ -z "$$TF_VAR_bucket_source_code" ]; then \
+		echo "Error: TF_VAR_bucket_source_code not set in .env file"; \
+		exit 1; \
+	fi && \
+	echo "Using bucket: $$TF_VAR_bucket_source_code" && \
+	aws s3 sync src/ s3://$$TF_VAR_bucket_source_code/src/ --delete && \
+	echo "Source code uploaded successfully to s3://$$TF_VAR_bucket_source_code/src/"
+
+deploy:
+	@echo "Building project before deployment..."
+	@$(MAKE) build
 	@echo "Applying terraform configuration..."
-	cd infra && terraform init -upgrade && terraform apply
+	set -a && source .env && set +a && cd infra && terraform init -upgrade && terraform apply
+	@echo "Uploading source code after deployment..."
+	@$(MAKE) upload-source
 
 # Test target
 test:
