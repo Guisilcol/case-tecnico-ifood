@@ -31,17 +31,15 @@ class Pipeline:
         return df
 
     def lowercase_columns(self, df: "DataFrame") -> "DataFrame":
-        # Track renamed columns to handle duplicates
         renamed_columns = {}
         column_counts = {}
 
         for column in df.columns:
             new_name = column.lower().strip()
 
-            # Handle duplicate column names by adding a suffix
             if new_name in column_counts:
                 column_counts[new_name] += 1
-                # If this is a duplicate, drop the column to avoid conflicts
+
                 df = df.drop(column)
             else:
                 column_counts[new_name] = 1
@@ -78,6 +76,10 @@ class Pipeline:
             df = self.cast_columns_to_string(df)
             df = self.lowercase_columns(df)
             dfs.append(df)
+
+            print("Lido arquivo:", file)
+            print("Partição extraída:", partition_value)
+            df.printSchema()
 
         df = self.concatenate_dataframes(dfs)
         df = df.withColumn("data_hora_ingestao", F.current_timestamp())
