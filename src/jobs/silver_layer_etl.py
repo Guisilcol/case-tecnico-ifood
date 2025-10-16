@@ -90,8 +90,8 @@ class Pipeline:
             "id_tipo_pagamento",
             "descricao_tipo_pagamento",
             "tipo_servico",
-            "ano_mes_referencia",
             "data_hora_criacao_registro",
+            "ano_mes_referencia",
         )
         return df
 

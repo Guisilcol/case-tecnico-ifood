@@ -18,11 +18,6 @@ variable "bucket_silver_layer" {
   type        = string
 }
 
-variable "bucket_gold_layer" {
-  description = "Nome do bucket S3 para a camada gold"
-  type        = string
-}
-
 variable "databricks_host" {
   description = "URL do workspace Databricks"
   type        = string
