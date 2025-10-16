@@ -4,7 +4,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 class Pipeline:
-    def run():
+    def run(self):
         schema = T.StructType(
             [
                 T.StructField("VendorID", T.LongType(), True),
