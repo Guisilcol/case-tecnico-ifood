@@ -32,7 +32,7 @@ class Pipeline:
 
     def lowercase_columns(self, df: "DataFrame") -> "DataFrame":
         for column in df.columns:
-            df = df.withColumnRenamed(column, column.lower())
+            df = df.withColumnRenamed(column, column.lower().strip())
         return df
 
     def equalize_schemas(self, df: "DataFrame", target_df: "DataFrame") -> "DataFrame":
