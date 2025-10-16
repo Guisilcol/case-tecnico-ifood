@@ -31,23 +31,8 @@ class Pipeline:
         return df
 
     def lowercase_columns(self, df: "DataFrame") -> "DataFrame":
-        renamed_columns = {}
-        column_counts = {}
-
         for column in df.columns:
-            new_name = column.lower().strip()
-
-            if new_name in column_counts:
-                column_counts[new_name] += 1
-
-                df = df.drop(column)
-            else:
-                column_counts[new_name] = 1
-                renamed_columns[column] = new_name
-
-        # Rename all non-duplicate columns
-        for old_name, new_name in renamed_columns.items():
-            df = df.withColumnRenamed(old_name, new_name)
+            df = df.withColumnRenamed(column, column.lower())
 
         return df
 
@@ -55,6 +40,11 @@ class Pipeline:
         for field in target_df.schema.fields:
             if field.name not in df.columns:
                 df = df.withColumn(field.name, F.lit(None).cast(field.dataType))
+
+            df = df.withColumn(field.name, F.col(field.name).cast(field.dataType))
+
+        df = df.select([field.name for field in target_df.schema.fields])
+
         return df
 
     def run(self):
@@ -68,7 +58,9 @@ class Pipeline:
             # Extrai o "ano_mes_referencia=YYYY-MM" do nome do arquivo (file)
             partition = re.search(r"ano_mes_referencia=\d{4}-\d{2}", file.path)
             if not partition:
-                raise
+                raise ValueError(
+                    f"Não foi possível extrair a partição do arquivo: {file.path}"
+                )
 
             partition_value = partition.group(0).split("=")[1]
             df = self.spark.read.parquet(file.path, mergeSchema=True)
@@ -76,10 +68,6 @@ class Pipeline:
             df = self.cast_columns_to_string(df)
             df = self.lowercase_columns(df)
             dfs.append(df)
-
-            print("Lido arquivo:", file)
-            print("Partição extraída:", partition_value)
-            df.printSchema()
 
         df = self.concatenate_dataframes(dfs)
         df = df.withColumn("data_hora_ingestao", F.current_timestamp())
