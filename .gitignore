@@ -1,0 +1,13 @@
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+__pycache__/
+*.pyc
+.terraform.lock.hcl
+.env
+.databricks
+.vscode
+.databricks
+.venv
+databricks.yml
+typings
