@@ -1,12 +1,14 @@
-module "lakehouse" {
-  source = "./modules/lakehouse"
 
-  bronze_db_name        = "bronze_db"
-  bronze_db_s3_location = "s3://${var.bucket_bronze_layer}"
+resource "databricks_schema" "bronze_db" {
+  catalog_name = "workspace"
+  name         = "bronze_db"
+  storage_root = "s3://${var.bucket_bronze_layer}"
+  comment      = "Schema bronze para dados brutos"
+}
 
-  silver_db_name        = "silver_db"
-  silver_db_s3_location = "s3://${var.bucket_silver_layer}"
-
-  gold_db_name        = "gold_db"
-  gold_db_s3_location = "s3://${var.bucket_gold_layer}"
+resource "databricks_schema" "silver_db" {
+  catalog_name = "workspace"
+  name         = "silver_db"
+  storage_root = "s3://${var.bucket_silver_layer}"
+  comment      = "Schema silver para dados refinados"
 }

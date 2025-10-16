@@ -1,65 +1,24 @@
-resource "aws_iam_role" "glue_job_role" {
-  name = "glue-job-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = [
-            "glue.amazonaws.com",
-            "states.amazonaws.com",
-          ]
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "data_pipeline_policy" {
-  name = "data-pipeline-policy"
-  role = aws_iam_role.glue_job_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:*",
-          "glue:*",
-          "states:*",
-          "cloudwatch:*",
-          "logs:*",
-        ]
-        Resource = ["*"]
-      }
-    ]
-  })
-}
+data "databricks_current_metastore" "this" {}
 
 resource "aws_iam_role" "databricks_role" {
   name = "databricks-role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
         Effect = "Allow",
         Principal = {
-          AWS = [
-            "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
-            "arn:aws:iam::241963575180:role/databricks-role"
-          ]
+          AWS = "arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL"
         },
         Action = "sts:AssumeRole",
-        Condition = {
-          StringEquals = {
-            "sts:ExternalId" = "6ff02c0c-d789-4f2e-8185-344bd63a7f69"
-          }
-        }
+      },
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/databricks-role"
+        },
+        Action = "sts:AssumeRole",
       }
     ]
   })
@@ -83,7 +42,14 @@ resource "aws_iam_role_policy" "databricks_policy" {
           "s3:GetLifecycleConfiguration",
           "s3:PutLifecycleConfiguration"
         ]
-        Resource = ["*"]
+        Resource = [
+          "arn:aws:s3:::${var.bucket_landing_zone}",
+          "arn:aws:s3:::${var.bucket_landing_zone}/*",
+          "arn:aws:s3:::${var.bucket_bronze_layer}",
+          "arn:aws:s3:::${var.bucket_bronze_layer}/*",
+          "arn:aws:s3:::${var.bucket_silver_layer}",
+          "arn:aws:s3:::${var.bucket_silver_layer}/*"
+        ]
       },
       {
         Effect = "Allow"
@@ -105,3 +71,51 @@ resource "aws_iam_role_policy" "databricks_policy" {
     ]
   })
 }
+
+resource "databricks_credential" "databricks_credential" {
+  name    = "databricks-read-s3-landing-zone"
+  purpose = "STORAGE"
+
+  aws_iam_role {
+    role_arn = aws_iam_role.databricks_role.arn
+
+  }
+}
+
+resource "databricks_external_location" "landing_zone" {
+  name            = "landing-zone"
+  url             = "s3://${var.bucket_landing_zone}/"
+  credential_name = databricks_credential.databricks_credential.name
+  comment         = "External location for landing zone data"
+
+  depends_on = [
+    aws_iam_role_policy.databricks_policy,
+    aws_s3_bucket.bucket_landing_zone
+  ]
+}
+
+resource "databricks_external_location" "bronze_layer" {
+  name            = "bronze-layer"
+  url             = "s3://${var.bucket_bronze_layer}/"
+  credential_name = databricks_credential.databricks_credential.name
+  comment         = "External location for bronze layer data"
+
+  depends_on = [
+    aws_iam_role_policy.databricks_policy,
+    aws_s3_bucket.bucket_bronze_layer
+  ]
+}
+
+resource "databricks_external_location" "silver_layer" {
+  name            = "silver-layer"
+  url             = "s3://${var.bucket_silver_layer}/"
+  credential_name = databricks_credential.databricks_credential.name
+  comment         = "External location for silver layer data"
+
+  depends_on = [
+    aws_iam_role_policy.databricks_policy,
+    aws_s3_bucket.bucket_silver_layer
+  ]
+}
+
+

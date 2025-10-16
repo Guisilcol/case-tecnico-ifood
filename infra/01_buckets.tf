@@ -29,11 +29,3 @@ resource "aws_s3_bucket" "bucket_silver_layer" {
     name = "Silver Layer Bucket"
   }
 }
-
-resource "aws_s3_bucket" "bucket_gold_layer" {
-  bucket = var.bucket_gold_layer
-
-  tags = {
-    name = "Gold Layer Bucket"
-  }
-}

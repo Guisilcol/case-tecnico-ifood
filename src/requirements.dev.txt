@@ -1,6 +1,5 @@
 -r ./requirements.txt
 pytest
-pyspark
-awsglue3-local==1.0.0
+databricks-sdk
 mypy-boto3
-boto3-stubs[s3, glue]
+boto3-stubs[s3]

@@ -50,3 +50,16 @@ variable "databricks_serverless_workspace_id" {
   description = "ID do workspace serverless do Databricks"
   type        = string
 }
+
+variable "aws_access_key_id" {
+  description = "AWS Access Key ID para acesso ao S3"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS Secret Access Key para acesso ao S3"
+  type        = string
+  sensitive   = true
+}
+
