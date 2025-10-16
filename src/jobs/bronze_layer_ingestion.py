@@ -31,8 +31,26 @@ class Pipeline:
         return df
 
     def lowercase_columns(self, df: "DataFrame") -> "DataFrame":
+        # Track renamed columns to handle duplicates
+        renamed_columns = {}
+        column_counts = {}
+
         for column in df.columns:
-            df = df.withColumnRenamed(column, column.lower().strip())
+            new_name = column.lower().strip()
+
+            # Handle duplicate column names by adding a suffix
+            if new_name in column_counts:
+                column_counts[new_name] += 1
+                # If this is a duplicate, drop the column to avoid conflicts
+                df = df.drop(column)
+            else:
+                column_counts[new_name] = 1
+                renamed_columns[column] = new_name
+
+        # Rename all non-duplicate columns
+        for old_name, new_name in renamed_columns.items():
+            df = df.withColumnRenamed(old_name, new_name)
+
         return df
 
     def equalize_schemas(self, df: "DataFrame", target_df: "DataFrame") -> "DataFrame":
