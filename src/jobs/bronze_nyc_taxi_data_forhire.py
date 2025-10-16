@@ -125,7 +125,6 @@ class Pipeline:
     def run(self):
         print("> Iniciando a execução do job...")
 
-        # Discover all partitions
         partitions = self.discover_partitions()
 
         if not partitions:
@@ -141,29 +140,24 @@ class Pipeline:
             print(f"> Processando partição: {partition}")
             print(f"> Progresso: {idx}/{len(partitions)}")
 
-            try:
-                df = self.compute_raw(partition)
-                df = self.compute_transformed(df)
+            df = self.compute_raw(partition)
+            df = self.compute_transformed(df)
 
-                print(
-                    f"> Escrevendo {len(df)} linhas na partição ano_mes_referencia={partition}"
-                )
+            print(
+                f"> Escrevendo {len(df)} linhas na partição ano_mes_referencia={partition}"
+            )
 
-                wr.s3.to_parquet(
-                    df=df,
-                    path=location,
-                    dataset=True,
-                    database=self.args.target_db,
-                    table=self.args.target_table,
-                    mode="overwrite_partitions",
-                    partition_cols=["ano_mes_referencia"],
-                    boto3_session=self.boto3_session,
-                    compression="snappy",
-                )
-
-            except Exception as e:
-                print(f"! Erro ao processar partição {partition}: {str(e)}")
-                raise
+            wr.s3.to_parquet(
+                df=df,
+                path=location,
+                dataset=True,
+                database=self.args.target_db,
+                table=self.args.target_table,
+                mode="overwrite_partitions",
+                partition_cols=["ano_mes_referencia"],
+                boto3_session=self.boto3_session,
+                compression="snappy",
+            )
 
         print("> Job finalizado com sucesso!")
 
