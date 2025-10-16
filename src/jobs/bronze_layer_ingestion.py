@@ -58,10 +58,10 @@ class Pipeline:
             df = self.spark.read.parquet(file.path, mergeSchema=True)
             df = df.withColumn("ano_mes_referencia", F.lit(partition_value))
             df = self.cast_columns_to_string(df)
+            df = self.lowercase_columns(df)
             dfs.append(df)
 
         df = self.concatenate_dataframes(dfs)
-        df = self.lowercase_columns(df)
         df = df.withColumn("data_hora_ingestao", F.current_timestamp())
 
         df = self.equalize_schemas(df, target_df)
@@ -71,6 +71,7 @@ class Pipeline:
 def main():
     table_name = sys.argv[1]
     source_prefix = sys.argv[2]
+
     dbutils = WorkspaceClient().dbutils
     spark = SparkSession.getActiveSession()
     pipeline = Pipeline(
