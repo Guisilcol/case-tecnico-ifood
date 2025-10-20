@@ -9,17 +9,21 @@ Dados disponíveis em: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.p
 Formato: Parquet
 """
 
-import requests
-from dataclasses import dataclass
-from typing import List, Dict, Self
-import time
-from datetime import datetime
 import argparse
+from dataclasses import dataclass
+from datetime import datetime
+import io
 import sys
-from dateutil.relativedelta import relativedelta
+import time
+from typing import Dict, List, Self
+from mypy_boto3_s3 import S3Client
+
 import boto3
 from botocore.exceptions import ClientError
-import io
+from dateutil.relativedelta import relativedelta
+import requests
+
+from databricks.sdk import WorkspaceClient
 
 
 @dataclass
@@ -104,63 +108,20 @@ class Arguments:
 class App:
     """Classe para fazer download dos dados de táxis de NYC para S3."""
 
-    def __init__(
-        self,
-        s3_bucket: str,
-        s3_prefix: str = "nyc_taxi_data",
-        base_url: str = "https://d37ci6vzurychx.cloudfront.net/trip-data",
-    ):
-        """
-        Inicializa o downloader.
+    data_types = {
+        "yellow": "yellow_tripdata",
+        "green": "green_tripdata",
+        "fhv": "fhv_tripdata",
+        "fhvhv": "fhvhv_tripdata",  # High Volume For-Hire Vehicles
+        "forhire": "fhv_tripdata",  # Alias para fhv
+        "highvolumeforhire": "fhvhv_tripdata",  # Alias para fhvhv
+    }
 
-        Args:
-            s3_bucket: Nome do bucket S3 onde os dados serão salvos
-            s3_prefix: Prefixo (pasta) no S3 para salvar os dados
-            base_url: URL base para download dos dados
-        """
-        self.s3_bucket = s3_bucket
-        self.s3_prefix = s3_prefix
-        self.base_url = base_url
+    def __init__(self, args: Arguments, s3_client: S3Client) -> None:
+        self.args = args
+        self.s3_client = s3_client
 
-        from databricks.sdk import WorkspaceClient
-
-        w = WorkspaceClient()
-        dbutils = w.dbutils
-        self.s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=dbutils.secrets.get(
-                "s3-access-keys", "AWS_ACCESS_KEY_ID"
-            ),
-            aws_secret_access_key=dbutils.secrets.get(
-                "s3-access-keys", "AWS_SECRET_ACCESS_KEY"
-            ),
-        )
-
-        # Tipos de dados disponíveis
-        self.data_types = {
-            "yellow": "yellow_tripdata",
-            "green": "green_tripdata",
-            "fhv": "fhv_tripdata",
-            "fhvhv": "fhvhv_tripdata",  # High Volume For-Hire Vehicles
-            "forhire": "fhv_tripdata",  # Alias para fhv
-            "highvolumeforhire": "fhvhv_tripdata",  # Alias para fhvhv
-        }
-
-        # Valida se o bucket existe
-        try:
-            self.s3_client.head_bucket(Bucket=self.s3_bucket)
-        except ClientError as e:
-            error_code = e.response["Error"]["Code"]
-            if error_code == "404":
-                raise ValueError(f"Bucket S3 '{self.s3_bucket}' não existe")
-            elif error_code == "403":
-                raise ValueError(
-                    f"Sem permissão para acessar o bucket '{self.s3_bucket}'"
-                )
-            else:
-                raise ValueError(f"Erro ao acessar bucket S3: {e}")
-
-    def _generate_months_range(self, start_date: str, end_date: str) -> List[str]:
+    def generate_months_range(self, start_date: str, end_date: str) -> List[str]:
         """
         Gera uma lista de meses no formato YYYY-MM entre duas datas.
 
@@ -192,7 +153,7 @@ class App:
                 raise ValueError("Formato de data inválido. Use YYYY-MM (ex: 2023-01)")
             raise e
 
-    def _get_all_available_months(self) -> List[str]:
+    def get_all_available_months(self) -> List[str]:
         """
         Retorna uma lista com todos os meses disponíveis (carga full).
         """
@@ -208,7 +169,7 @@ class App:
 
         return months
 
-    def _check_s3_file_exists(self, s3_key: str) -> bool:
+    def check_s3_file_exists(self, s3_key: str) -> bool:
         """
         Verifica se um arquivo já existe no S3.
 
@@ -219,12 +180,12 @@ class App:
             True se o arquivo existe, False caso contrário
         """
         try:
-            self.s3_client.head_object(Bucket=self.s3_bucket, Key=s3_key)
+            self.s3_client.head_object(Bucket=self.args.s3_bucket, Key=s3_key)
             return True
         except ClientError:
             return False
 
-    def _download_to_s3(self, url: str, s3_key: str, filename: str) -> bool:
+    def download_to_s3(self, url: str, s3_key: str, filename: str) -> bool:
         """
         Faz download de um arquivo direto para S3.
 
@@ -238,7 +199,7 @@ class App:
         """
         try:
             # Verifica se o arquivo já existe no S3
-            if self._check_s3_file_exists(s3_key):
+            if self.check_s3_file_exists(s3_key):
                 print(f"Arquivo já existe no S3: {filename}")
                 return True
 
@@ -260,12 +221,12 @@ class App:
             # Faz upload para o S3
             self.s3_client.upload_fileobj(
                 file_data,
-                self.s3_bucket,
+                self.args.s3_bucket,
                 s3_key,
                 ExtraArgs={"ContentType": "application/octet-stream"},
             )
 
-            print(f"Upload concluído para S3: s3://{self.s3_bucket}/{s3_key}")
+            print(f"Upload concluído para S3: s3://{self.args.s3_bucket}/{s3_key}")
             return True
 
         except requests.exceptions.RequestException as e:
@@ -301,10 +262,10 @@ class App:
             # Cria a estrutura de particionamento Hive no S3
             # Formato: s3://bucket/prefix/ano_mes_referencia=<ano-mes>/arquivo.parquet
             filename = f"{data_prefix}_{month}.parquet"
-            s3_key = f"{self.s3_prefix}/ano_mes_referencia={month}/{filename}"
-            url = f"{self.base_url}/{filename}"
+            s3_key = f"{self.args.s3_prefix}/ano_mes_referencia={month}/{filename}"
+            url = f"{self.args.base_url}/{filename}"
 
-            success = self._download_to_s3(url, s3_key, filename)
+            success = self.download_to_s3(url, s3_key, filename)
             results[filename] = success
 
             # Pequena pausa entre downloads
@@ -312,48 +273,57 @@ class App:
 
         return results
 
+    def run(self) -> None:
+        """
+        Executa o processo de download baseado nos argumentos fornecidos.
+        """
+        # Determina os meses para download
+        if self.args.start_month and self.args.end_month:
+            months = self.generate_months_range(
+                self.args.start_month, self.args.end_month
+            )
+        else:
+            months = self.get_all_available_months()
+
+        print(
+            f"Iniciando download da base {self.args.base} para S3://{self.args.s3_bucket}/{self.args.s3_prefix}/"
+        )
+        print(f"Total de meses a baixar: {len(months)}")
+
+        # Faz o download dos dados
+        results = self.download_dataset(self.args.base, months)
+
+        # Resumo dos resultados
+        successful = sum(1 for success in results.values() if success)
+        total = len(results)
+        print(f"\nResumo: {successful}/{total} arquivos enviados para S3")
+        print(f"Localização: s3://{self.args.s3_bucket}/{self.args.s3_prefix}/")
+
+        # Lista arquivos com erro
+        failed_files = [
+            filename for filename, success in results.items() if not success
+        ]
+        if failed_files:
+            print(f"Falhas: {', '.join(failed_files)}")
+
 
 def main():
-    """Função principal."""
     args = Arguments.parse_arguments()
 
-    # Validação dos argumentos
-    if args.start_month and not args.end_month:
-        # Se apenas start_month foi informado, usa apenas esse mês
-        args.end_month = args.start_month
-    elif args.end_month and not args.start_month:
-        print("Erro: Se end_month for informado, start_month também deve ser informado")
-        sys.exit(1)
-
-    # Cria o downloader
-    print(f"Configuração S3: bucket={args.s3_bucket}, prefix={args.s3_prefix}")
-    downloader = App(
-        s3_bucket=args.s3_bucket, s3_prefix=args.s3_prefix, base_url=args.base_url
+    dbutils = WorkspaceClient().dbutils
+    aws_access_key_id = dbutils.secrets.get("s3-access-keys", "AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = dbutils.secrets.get(
+        "s3-access-keys", "AWS_SECRET_ACCESS_KEY"
     )
 
-    # Determina quais meses baixar
-    if args.start_month and args.end_month:
-        months = downloader._generate_months_range(args.start_month, args.end_month)
-        print(
-            f"Download: {args.base} ({args.start_month} a {args.end_month}) - {len(months)} meses"
-        )
-    else:
-        months = downloader._get_all_available_months()
-        print(f"Download: {args.base} (carga full) - {len(months)} meses")
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+    )
 
-    # Faz o download
-    results = downloader.download_dataset(args.base, months)
-
-    # Mostra resumo
-    successful = sum(1 for success in results.values() if success)
-    total = len(results)
-    print(f"\nResumo: {successful}/{total} arquivos enviados para S3")
-    print(f"Localização: s3://{args.s3_bucket}/{args.s3_prefix}/")
-
-    # Lista arquivos com erro
-    failed_files = [filename for filename, success in results.items() if not success]
-    if failed_files:
-        print(f"Falhas: {', '.join(failed_files)}")
+    app = App(args, s3_client)
+    app.run()
 
 
 if __name__ == "__main__":
