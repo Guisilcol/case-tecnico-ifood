@@ -1,5 +1,4 @@
 import sys
-
 from pyspark.sql import SparkSession, functions as F, DataFrame
 
 
