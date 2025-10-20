@@ -13,7 +13,6 @@ import argparse
 from dataclasses import dataclass
 from datetime import datetime
 import io
-import sys
 import time
 from typing import Dict, List, Self
 from mypy_boto3_s3 import S3Client
