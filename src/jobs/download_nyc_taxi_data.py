@@ -29,15 +29,15 @@ from databricks.sdk import WorkspaceClient
 class Arguments:
     """Classe para armazenar os argumentos do script."""
 
-    base: str
-    s3_bucket: str
-    start_month: str | None = None
-    end_month: str | None = None
-    s3_prefix: str = "nyc_taxi_data"
-    base_url: str = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+    base: "str"
+    s3_bucket: "str"
+    start_month: "str | None" = None
+    end_month: "str | None" = None
+    s3_prefix: "str" = "nyc_taxi_data"
+    base_url: "str" = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 
     @classmethod
-    def parse_arguments(cls) -> Self:
+    def parse_arguments(cls) -> "Self":
         """Parse argumentos da linha de comando."""
         parser = argparse.ArgumentParser(
             description="Download de dados de táxis de NYC para S3",
@@ -116,11 +116,11 @@ class App:
         "highvolumeforhire": "fhvhv_tripdata",  # Alias para fhvhv
     }
 
-    def __init__(self, args: Arguments, s3_client: S3Client) -> None:
+    def __init__(self, args: "Arguments", s3_client: "S3Client") -> None:
         self.args = args
         self.s3_client = s3_client
 
-    def generate_months_range(self, start_date: str, end_date: str) -> List[str]:
+    def generate_months_range(self, start_date: "str", end_date: "str") -> "List[str]":
         """
         Gera uma lista de meses no formato YYYY-MM entre duas datas.
 
@@ -152,7 +152,7 @@ class App:
                 raise ValueError("Formato de data inválido. Use YYYY-MM (ex: 2023-01)")
             raise e
 
-    def get_all_available_months(self) -> List[str]:
+    def get_all_available_months(self) -> "List[str]":
         """
         Retorna uma lista com todos os meses disponíveis (carga full).
         """
@@ -168,7 +168,7 @@ class App:
 
         return months
 
-    def check_s3_file_exists(self, s3_key: str) -> bool:
+    def check_s3_file_exists(self, s3_key: "str") -> "bool":
         """
         Verifica se um arquivo já existe no S3.
 
@@ -184,7 +184,7 @@ class App:
         except ClientError:
             return False
 
-    def download_to_s3(self, url: str, s3_key: str, filename: str) -> bool:
+    def download_to_s3(self, url: "str", s3_key: "str", filename: "str") -> "bool":
         """
         Faz download de um arquivo direto para S3.
 
@@ -240,7 +240,9 @@ class App:
             print(f"Erro inesperado em {filename}: {e}")
             return False
 
-    def download_dataset(self, data_type: str, months: List[str]) -> Dict[str, bool]:
+    def download_dataset(
+        self, data_type: "str", months: "List[str]"
+    ) -> "Dict[str, bool]":
         """
         Faz download de um tipo específico de dados para S3.
 
