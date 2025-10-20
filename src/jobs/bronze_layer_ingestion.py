@@ -30,7 +30,7 @@ class Pipeline:
             df = df.unionByName(other_df, allowMissingColumns=True)
         return df
 
-    def lowercase_columns(self, df: "DataFrame") -> "DataFrame":
+    def lowercase_columns_names(self, df: "DataFrame") -> "DataFrame":
         for column in df.columns:
             df = df.withColumnRenamed(column, column.lower())
 
@@ -66,7 +66,7 @@ class Pipeline:
             df = self.spark.read.parquet(file.path, mergeSchema=True)
             df = df.withColumn("ano_mes_referencia", F.lit(partition_value))
             df = self.cast_columns_to_string(df)
-            df = self.lowercase_columns(df)
+            df = self.lowercase_columns_names(df)
             dfs.append(df)
 
         df = self.concatenate_dataframes(dfs)
