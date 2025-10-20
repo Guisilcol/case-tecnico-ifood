@@ -1,11 +1,3 @@
-resource "aws_s3_bucket" "bucket_source_code" {
-  bucket = var.bucket_source_code
-
-  tags = {
-    name = "Source Code Bucket"
-  }
-}
-
 resource "aws_s3_bucket" "bucket_landing_zone" {
   bucket = var.bucket_landing_zone
 

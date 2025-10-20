@@ -1,8 +1,3 @@
-variable "bucket_source_code" {
-  description = "Nome do bucket S3 para armazenar o código fonte"
-  type        = string
-}
-
 variable "bucket_landing_zone" {
   description = "Nome do bucket S3 para a landing zone"
   type        = string
