@@ -20,7 +20,7 @@ deploy:
 # Test target
 test:
 	@echo "Running tests..."
-	pytest -v
+	set -a && source .env && pytest -v
 
 # Install dependencies
 install:
