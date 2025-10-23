@@ -6,7 +6,6 @@ Uso:
     python download_nyc_taxi_data.py <base> [start_month] [end_month] --s3-bucket BUCKET [--s3-prefix PREFIX] [--base-url URL]
 
 Dados disponíveis em: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
-Formato: Parquet
 """
 
 import argparse
