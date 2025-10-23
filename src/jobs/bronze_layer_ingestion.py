@@ -1,8 +1,11 @@
 import re
 import sys
 
-from pyspark.sql import SparkSession, functions as F, DataFrame
+import pyspark.sql.functions as F
 from databricks.sdk import WorkspaceClient
+
+
+from pyspark.sql import SparkSession, DataFrame
 from databricks.sdk.dbutils import RemoteDbUtils
 
 
