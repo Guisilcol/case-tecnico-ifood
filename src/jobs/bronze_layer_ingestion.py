@@ -22,7 +22,7 @@ class Pipeline:
         self.source_prefix = source_prefix
         self.target_table = target_table
 
-    def cast_columns_to_string(self, df: DataFrame) -> "DataFrame":
+    def cast_columns_to_string(self, df: "DataFrame") -> "DataFrame":
         for column in df.columns:
             df = df.withColumn(column, F.col(column).cast("string"))
         return df
