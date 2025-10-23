@@ -66,7 +66,7 @@ class Pipeline:
                 )
 
             partition_value = partition.group(0).split("=")[1]
-            df = self.spark.read.parquet(file.path, mergeSchema=True)
+            df = self.spark.read.parquet(file.path)
             df = df.withColumn("ano_mes_referencia", F.lit(partition_value))
             df = self.cast_columns_to_string(df)
             df = self.lowercase_columns_names(df)
