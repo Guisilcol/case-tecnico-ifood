@@ -11,16 +11,16 @@ help:
 
 plan:
 	@echo "Running terraform plan..."
-	set -a && source .env && set +a && cd infra && terraform init && terraform plan
+	source configure_env.bash && cd infra && terraform init && terraform plan
 
 deploy:
 	@echo "Applying terraform configuration..."
-	set -a && source .env && set +a && cd infra && terraform init -upgrade && terraform apply
+	source configure_env.bash && cd infra && terraform init -upgrade && terraform apply
 
 # Test target
 test:
 	@echo "Running tests..."
-	set -a && source .env && pytest -v
+	source configure_env.bash && pytest -v
 
 # Install dependencies
 install:

@@ -53,3 +53,7 @@ variable "aws_secret_access_key" {
   sensitive   = true
 }
 
+variable "workspace_folder" {
+  description = "Caminho da pasta no workspace do Databricks onde os notebooks e jobs estão localizados"
+  type        = string
+}

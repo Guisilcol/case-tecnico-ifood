@@ -21,7 +21,7 @@ resource "databricks_job" "serverless_python_job" {
     max_retries     = 0
 
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/download_nyc_taxi_data.py"
+      python_file = "${var.workspace_folder}/src/jobs/download_nyc_taxi_data.py"
       parameters  = ["yellow", "2023-01", "2023-05", "--s3-bucket", var.bucket_landing_zone, "--s3-prefix", "nyc_taxi_data_yellow"]
     }
   }
@@ -32,7 +32,7 @@ resource "databricks_job" "serverless_python_job" {
     max_retries     = 0
 
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/download_nyc_taxi_data.py"
+      python_file = "${var.workspace_folder}/src/jobs/download_nyc_taxi_data.py"
       parameters  = ["green", "2023-01", "2023-05", "--s3-bucket", var.bucket_landing_zone, "--s3-prefix", "nyc_taxi_data_green"]
     }
   }
@@ -43,7 +43,7 @@ resource "databricks_job" "serverless_python_job" {
     max_retries     = 0
 
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/download_nyc_taxi_data.py"
+      python_file = "${var.workspace_folder}/src/jobs/download_nyc_taxi_data.py"
       parameters  = ["forhire", "2023-01", "2023-05", "--s3-bucket", var.bucket_landing_zone, "--s3-prefix", "nyc_taxi_data_forhire"]
     }
   }
@@ -54,7 +54,7 @@ resource "databricks_job" "serverless_python_job" {
     max_retries     = 0
 
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/download_nyc_taxi_data.py"
+      python_file = "${var.workspace_folder}/src/jobs/download_nyc_taxi_data.py"
       parameters  = ["highvolumeforhire", "2023-01", "2023-05", "--s3-bucket", var.bucket_landing_zone, "--s3-prefix", "nyc_taxi_data_highvolumeforhire"]
     }
   }
@@ -70,7 +70,7 @@ resource "databricks_job" "serverless_python_job" {
       task_key = "download_nyc_taxi_data_yellow"
     }
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/bronze_layer_ingestion.py"
+      python_file = "${var.workspace_folder}/src/jobs/bronze_layer_ingestion.py"
       parameters  = ["bronze_db.nyc_taxi_data_yellow", "s3://${var.bucket_landing_zone}/nyc_taxi_data_yellow"]
     }
   }
@@ -84,7 +84,7 @@ resource "databricks_job" "serverless_python_job" {
       task_key = "download_nyc_taxi_data_green"
     }
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/bronze_layer_ingestion.py"
+      python_file = "${var.workspace_folder}/src/jobs/bronze_layer_ingestion.py"
       parameters  = ["bronze_db.nyc_taxi_data_green", "s3://${var.bucket_landing_zone}/nyc_taxi_data_green"]
     }
   }
@@ -98,7 +98,7 @@ resource "databricks_job" "serverless_python_job" {
       task_key = "download_nyc_taxi_data_forhire"
     }
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/bronze_layer_ingestion.py"
+      python_file = "${var.workspace_folder}/src/jobs/bronze_layer_ingestion.py"
       parameters  = ["bronze_db.nyc_taxi_data_forhire", "s3://${var.bucket_landing_zone}/nyc_taxi_data_forhire"]
     }
   }
@@ -112,7 +112,7 @@ resource "databricks_job" "serverless_python_job" {
       task_key = "download_nyc_taxi_data_highvolumeforhire"
     }
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/bronze_layer_ingestion.py"
+      python_file = "${var.workspace_folder}/src/jobs/bronze_layer_ingestion.py"
       parameters  = ["bronze_db.nyc_taxi_data_highvolumeforhire", "s3://${var.bucket_landing_zone}/nyc_taxi_data_highvolumeforhire"]
     }
   }
@@ -132,7 +132,7 @@ resource "databricks_job" "serverless_python_job" {
     }
 
     spark_python_task {
-      python_file = "/Workspace/Users/silcol455@gmail.com/case-tecnico-ifood/src/jobs/silver_layer_etl.py"
+      python_file = "${var.workspace_folder}/src/jobs/silver_layer_etl.py"
       parameters  = []
     }
 

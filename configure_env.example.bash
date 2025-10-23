@@ -11,6 +11,7 @@ export aws_profile=default
 export aws_access_key_id=ABC123
 export aws_secret_access_key=ABC123
 export databricks_serverless_workspace_id=123
+export workspace_folder="/Workspace/Users/user@gmail.com/case-tecnico-ifood"
 
 export TF_VAR_bucket_landing_zone=${bucket_landing_zone}
 export TF_VAR_bucket_bronze_layer=${bucket_bronze_layer}
@@ -22,3 +23,4 @@ export TF_VAR_aws_profile=${aws_profile}
 export TF_VAR_databricks_serverless_workspace_id=${databricks_serverless_workspace_id}
 export TF_VAR_aws_access_key_id=${aws_access_key_id}
 export TF_VAR_aws_secret_access_key=${aws_secret_access_key}
+export TF_VAR_workspace_folder=${workspace_folder}
