@@ -1,5 +1,6 @@
 -r ./requirements.txt
 pytest
 databricks-sdk
+databricks-connect==15.1.*
 mypy-boto3
 boto3-stubs[s3]
