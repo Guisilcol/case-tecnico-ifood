@@ -4,11 +4,9 @@ terraform.tfstate.backup
 __pycache__/
 *.pyc
 .terraform.lock.hcl
-.env
 .databricks
 .vscode
-.databricks
-.venv
+configure_env.bash
 databricks.yml
 typings
 dist
