@@ -8,7 +8,7 @@ resource "databricks_job" "serverless_python_job" {
     spec {
       client = "2"
       dependencies = [
-        "boto3"
+        "boto3", "mypy-boto3", "boto3-stubs[s3]"
       ]
     }
   }
